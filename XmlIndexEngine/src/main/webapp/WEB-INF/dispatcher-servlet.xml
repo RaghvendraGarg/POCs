@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+	<context:annotation-config />
+	<context:component-scan base-package="com.inbetween" />
+	<mvc:annotation-driven />
+	
+	<bean  class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+		<property name="order" value="2" />
+	</bean>
+	
+	<!-- Configure the multipart resolver -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- one of the properties available; the maximum file size in bytes -->
+        <property name="maxUploadSize" value="100000"/>
+    </bean>
+    
+    <bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:c3p0.properties</value>
+			</list>
+		</property>
+	</bean>
+
+
+	<bean id="primarydatasource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+
+		<!-- ============== Basic jdbc Configuration Start ======== -->
+
+		<property name="driverClass" value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+
+		<!-- Basic jdbc Configuration End -->
+
+		<!-- ============== Basic Pool Configuration Start ======== -->
+
+		<!-- ============== Basic Pool Configuration Start ======== -->
+
+		<property name="initialPoolSize" value="${primary.local.initialPoolSize}" />
+
+		<property name="maxPoolSize" value="${primary.local.maxPoolSize}" />
+
+		<property name="maxIdleTime" value="${primary.local.maxIdleTime}" />
+
+		<property name="minPoolSize" value="${primary.local.minPoolSize}" />
+
+		<property name="maxIdleTimeExcessConnections"
+			value="${primary.local.maxIdleTimeExcessConnections}" />
+
+		<property name="maxConnectionAge" value="${primary.local.maxConnectionAge}" />
+
+		<property name="idleConnectionTestPeriod" value="${primary.local.idleConnectionTestPeriod}" />
+
+		<!--Used when a connection leak takes place - switched off <property name="debugUnreturnedConnectionStackTraces" 
+			value="${primary.local.debugUnreturnedConnectionStackTraces}"/> <property 
+			name="unreturnedConnectionTimeout" value="${primary.local.unreturnedConnectionTimeout}"/> -->
+
+
+		<!-- Basic Pool Configuration End -->
+
+		<!-- ============= Configuration Connection Testing Start ======== -->
+
+		<property name="automaticTestTable" value="${primary.local.automaticTestTable}" />
+
+		<!-- Configuration Connection Testing End -->
+
+
+		<!-- ======== Transaction Management Start ========== -->
+
+		<!-- C3P0's default policy is to rollback any uncommitted, pending work. 
+			Setting autoCommitOnClose to true causes uncommitted pending work to be committed, 
+			rather than rolled back on Connection close. -->
+
+		<property name="autoCommitOnClose" value="${primary.local.autoCommitOnClose}" />
+
+		<!-- This should only be set to true when you are sure you are using a 
+			database that allows Connections' autoCommit flag to go to false. If we want 
+			to manage transaction management by own and neither rollback nor commit the 
+			set it to true. -->
+
+		<property name="forceIgnoreUnresolvedTransactions"
+			value="${primary.local.forceIgnoreUnresolvedTransactions}" />
+
+		<!-- Transaction Management End -->
+
+	</bean>
+
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+
+		<property name="dataSource">
+			<ref bean="primarydatasource" />
+		</property>
+	</bean>
+
+	<!-- The txDataSourceManager could be a singleton. This needs to be verified -->
+
+	<bean id="jdbcPersistanceHandler" class="com.inbetween.persistence.impl.JDBCPersistenceHandler">
+		<property name="dataSource" ref="primarydatasource" />
+	</bean>
+	
+	<bean id="applicationStartListner" class="com.inbetween.listener.ApplicationStartListner"></bean>
+    
+</beans>
